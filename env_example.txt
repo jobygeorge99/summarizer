@@ -1,0 +1,10 @@
+# Azure Speech Services Configuration
+AZURE_SPEECH_KEY=your_azure_speech_key_here
+AZURE_SPEECH_ENDPOINT=https://your-resource-name.cognitiveservices.azure.com/
+
+# Audio File URI (SAS URI from Azure Blob Storage)
+AUDIO_URI=https://your-storage-account.blob.core.windows.net/container/audio1.mp4?sv=YOUR_SAS_TOKEN
+
+# Azure OpenAI Configuration
+AZURE_OPENAI_KEY=your_azure_openai_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
