@@ -1,7 +1,7 @@
 import os
 import requests
 import time
-from openai import AzureOpenAI
+import json
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -115,18 +115,20 @@ def get_results(endpoint, key, transcription_id):
     return all_transcriptions
 
 def summarize_text(text):
-    """Summarize text using Azure OpenAI"""
+    """Summarize text using Azure OpenAI via direct HTTP requests"""
     openai_key = os.getenv('AZURE_OPENAI_KEY')
     openai_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
+    deployment = os.getenv('DEPLOYMENT_NAME', 'gpt-4')
     
     if not openai_key or not openai_endpoint:
         raise ValueError("Missing Azure OpenAI configuration")
     
-    client = AzureOpenAI(
-        api_key=openai_key,
-        api_version="2024-02-15-preview",
-        azure_endpoint=openai_endpoint
-    )
+    # Use direct HTTP requests (working method)
+    url = f"{openai_endpoint}openai/deployments/{deployment}/chat/completions?api-version=2023-12-01-preview"
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": openai_key
+    }
     
     prompt = f"""Please provide a concise summary of the following text in 200 words:
 
@@ -134,14 +136,20 @@ def summarize_text(text):
 
 Summary:"""
     
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.3
-    )
+    data = {
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 500,
+        "temperature": 0.3
+    }
     
-    return response.choices[0].message.content
+    print("Sending summarization request...")
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 200:
+        result = response.json()
+        return result['choices'][0]['message']['content']
+    else:
+        raise Exception(f"Summarization failed: {response.status_code} - {response.text}")
 
 def main():
     """Main function"""
